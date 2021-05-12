@@ -50,7 +50,7 @@ func (a *API) handleSearch(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		r := &BasicReply{
 			Status: 404,
-			Error:  "please fill your query in ?q=<query>",
+			Error:  "search query in the get parameter 'q' is missing",
 		}
 		w.WriteHeader(404)
 		json.NewEncoder(w).Encode(r)
