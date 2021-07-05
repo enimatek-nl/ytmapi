@@ -2,18 +2,20 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 	"ytmapi/geckodriver"
 	"ytmapi/webdriver"
 )
 
 type API struct {
-	port   string
-	driver string
+	port    string
+	driver  string
 	verbose bool
 }
 
@@ -31,8 +33,8 @@ type BasicReply struct {
 
 func NewAPI(port string, driver string, verbose bool) *API {
 	api := &API{
-		port:   port,
-		driver: driver,
+		port:    port,
+		driver:  driver,
 		verbose: verbose,
 	}
 	return api
@@ -88,46 +90,68 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 	if err := driver.Navigate(fmt.Sprintf("https://music.youtube.com/search?q=%v", url.QueryEscape(q))); err != nil {
 		return nil, err
 	}
-	
-	element, _ := driver.FindElement(`ytmusic-section-list-renderer`)
-	if element != nil {
-		elements, _ := element.FindElements(`ytmusic-shelf-renderer`)
-		log.Println(len(elements))
-		for _, e := range elements {
-			header, _ := e.FindElements("h2")
-			if len(header) > 0 {
-				head, _ := header[0].GetText()
-				if strings.HasPrefix(head, "Song") {
-					songs, _ := e.FindElements("ytmusic-responsive-list-item-renderer")
-					for _, s := range songs {
-						container := &YTContainer{}
-						links, _ := s.FindElements("a")
-						if len(links) > 0 {
-							uri, _ := links[0].GetAttribute("href")
-							s := strings.Split(uri, "?v=")
-							if strings.Contains(s[1], "&") {
-								s = strings.Split(s[1], "&")
-								container.Id = s[0]
-							} else {
-								container.Id = s[1]
-							}
+
+	var element *webdriver.Element = nil
+	var elements []*webdriver.Element = nil
+
+	start := time.Now().Add(time.Second * 10)
+	for element == nil {
+		element, err = driver.FindElement(`ytmusic-section-list-renderer`)
+		if err != nil {
+			return nil, err
+		}
+		if time.Now().After(start) {
+			return nil, errors.New("timeout")
+		}
+	}
+
+	start = time.Now().Add(time.Second * 10)
+	for elements == nil {
+		elements, _ = element.FindElements(`ytmusic-shelf-renderer`)
+		if err != nil {
+			return nil, err
+		}
+		if time.Now().After(start) {
+			return nil, errors.New("timeout")
+		}
+	}
+
+	log.Println(len(elements))
+	for _, e := range elements {
+		header, _ := e.FindElements("h2")
+		if len(header) > 0 {
+			head, _ := header[0].GetText()
+			if strings.HasPrefix(head, "Song") {
+				songs, _ := e.FindElements("ytmusic-responsive-list-item-renderer")
+				for _, s := range songs {
+					container := &YTContainer{}
+					links, _ := s.FindElements("a")
+					if len(links) > 0 {
+						uri, _ := links[0].GetAttribute("href")
+						s := strings.Split(uri, "?v=")
+						if strings.Contains(s[1], "&") {
+							s = strings.Split(s[1], "&")
+							container.Id = s[0]
+						} else {
+							container.Id = s[1]
 						}
-						texts, _ := s.FindElements("yt-formatted-string")
-						if len(texts) >= 1 {
-							title, _ := texts[1].GetAttribute("title")
-							s := strings.Split(title, " • ")
-							container.Artist = s[1]
-							container.Title = s[2]
-							if len(s) >= 3 {
-								container.Duration = s[3]
-							}
-							c = append(c, container)
+					}
+					texts, _ := s.FindElements("yt-formatted-string")
+					if len(texts) >= 1 {
+						title, _ := texts[1].GetAttribute("title")
+						s := strings.Split(title, " • ")
+						container.Artist = s[1]
+						container.Title = s[2]
+						if len(s) >= 3 {
+							container.Duration = s[3]
 						}
+						c = append(c, container)
 					}
 				}
 			}
-
 		}
+
 	}
+
 	return
 }
