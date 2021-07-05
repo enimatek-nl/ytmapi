@@ -17,6 +17,7 @@ func main() {
 	flag.Parse()
 
 	log.Printf("OS: %s, Architecture: %s", runtime.GOOS, runtime.GOARCH)
+
 	server := api.NewAPI(port, driver, verbose)
 	log.Printf("API listening on port: %s", port)
 	server.Start()

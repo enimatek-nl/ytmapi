@@ -96,27 +96,21 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 
 	start := time.Now().Add(time.Second * 10)
 	for element == nil {
-		element, err = driver.FindElement(`ytmusic-section-list-renderer`)
-		if err != nil {
-			return nil, err
-		}
 		if time.Now().After(start) {
 			return nil, errors.New("timeout")
 		}
+		element, err = driver.FindElement(`ytmusic-section-list-renderer`)
 	}
 
 	start = time.Now().Add(time.Second * 10)
 	for elements == nil {
-		elements, _ = element.FindElements(`ytmusic-shelf-renderer`)
-		if err != nil {
-			return nil, err
-		}
 		if time.Now().After(start) {
 			return nil, errors.New("timeout")
 		}
+		elements, _ = element.FindElements(`ytmusic-shelf-renderer`)
 	}
 
-	log.Println(len(elements))
+	//log.Println(len(elements))
 	for _, e := range elements {
 		header, _ := e.FindElements("h2")
 		if len(header) > 0 {
