@@ -88,10 +88,11 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 	if err := driver.Navigate(fmt.Sprintf("https://music.youtube.com/search?q=%v", url.QueryEscape(q))); err != nil {
 		return nil, err
 	}
-
-	element, _ := driver.FindElement(`ytmusic-search-page[id=\"search-page\"]`)
+	
+	element, _ := driver.FindElement(`ytmusic-section-list-renderer`)
 	if element != nil {
 		elements, _ := element.FindElements(`ytmusic-shelf-renderer`)
+		log.Println(len(elements))
 		for _, e := range elements {
 			header, _ := e.FindElements("h2")
 			if len(header) > 0 {
