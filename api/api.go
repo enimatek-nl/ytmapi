@@ -29,6 +29,7 @@ type YTContainer struct {
 type BasicReply struct {
 	Status int
 	Error  string
+	Results []*YTContainer
 }
 
 func NewAPI(port string, driver string, verbose bool) *API {
@@ -66,8 +67,12 @@ func (a *API) handleSearch(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(500)
 			json.NewEncoder(w).Encode(r)
 		} else {
+			r := &BasicReply{
+				Status: 200,
+				Results: containers,
+			}
 			w.WriteHeader(200)
-			json.NewEncoder(w).Encode(containers)
+			json.NewEncoder(w).Encode(r)
 		}
 	}
 }
