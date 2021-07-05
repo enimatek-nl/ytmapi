@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 	"ytmapi/mapper"
 )
@@ -116,6 +117,9 @@ func (d *GeckoDriver) Post(uri string, body []byte) (m mapper.Map, err error) {
 	if err == nil && resp.StatusCode == 200 {
 		defer resp.Body.Close()
 		body, err := ioutil.ReadAll(resp.Body)
+		if strings.Contains(string(body), "\"value\":null") {
+			return nil, nil
+		}
 		if err == nil {
 			err = json.Unmarshal(body, &m)
 		}
