@@ -104,8 +104,11 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 		if time.Now().After(start) {
 			return nil, errors.New("timeout")
 		}
-		element, err = driver.FindElement(`ytmusic-section-list-renderer`)
+		//element, err = driver.FindElement(`ytmusic-section-list-renderer`)
+		element, err = driver.FindElement(`ytmusic-search-page[id=\"search-page\"]`)
 	}
+
+	time.Sleep(time.Second)
 
 	start = time.Now().Add(time.Second * 10)
 	for elements == nil {
