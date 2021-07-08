@@ -81,8 +81,12 @@ func (d *GeckoDriver) Stop() error {
 	defer func() {
 		d.cmd = nil
 	}()
-	//d.cmd.Process.Signal(os.Interrupt)
-	d.cmd.Process.Signal(os.Kill)
+	d.cmd.Process.Signal(os.Interrupt)
+	time.Sleep(time.Second)
+	err := d.cmd.Process.Kill()
+	if err != nil {
+		log.Println(err)
+	}
 	return nil
 }
 

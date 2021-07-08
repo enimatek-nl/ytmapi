@@ -115,7 +115,8 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 		elements, _ = element.FindElements(`ytmusic-shelf-renderer`)
 	}
 
-	//log.Println(len(elements))
+	log.Println("found", len(elements), "elements for q `", q, "`")
+
 	for _, e := range elements {
 		header, _ := e.FindElements("h2")
 		if len(header) > 0 {
@@ -145,6 +146,7 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 							container.Duration = s[3]
 						}
 						c = append(c, container)
+						log.Println("added", title)
 					}
 				}
 			}
