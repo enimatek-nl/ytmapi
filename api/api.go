@@ -27,8 +27,8 @@ type YTContainer struct {
 }
 
 type BasicReply struct {
-	Status int
-	Error  string
+	Status  int
+	Error   string
 	Results []*YTContainer
 }
 
@@ -68,7 +68,7 @@ func (a *API) handleSearch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(r)
 		} else {
 			r := &BasicReply{
-				Status: 200,
+				Status:  200,
 				Results: containers,
 			}
 			w.WriteHeader(200)
@@ -120,7 +120,7 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 		header, _ := e.FindElements("h2")
 		if len(header) > 0 {
 			head, _ := header[0].GetText()
-			if strings.HasPrefix(head, "Song") {
+			if strings.HasPrefix(head, "Song") { // Top result
 				songs, _ := e.FindElements("ytmusic-responsive-list-item-renderer")
 				for _, s := range songs {
 					container := &YTContainer{}
