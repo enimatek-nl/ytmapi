@@ -23,6 +23,7 @@ type YTContainer struct {
 	Id       string
 	Artist   string
 	Title    string
+	Album    string
 	Duration string
 }
 
@@ -124,7 +125,7 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 		header, _ := e.FindElements("h2")
 		if len(header) > 0 {
 			head, _ := header[0].GetText()
-			if strings.HasPrefix(head, "Song") { // Top result
+			if strings.HasPrefix(head, "Song") { //   || strings.HasPrefix(head, "Top result") Top result
 				songs, _ := e.FindElements("ytmusic-responsive-list-item-renderer")
 				for _, s := range songs {
 					container := &YTContainer{}
@@ -132,24 +133,30 @@ func (a *API) search(q string) (c []*YTContainer, err error) {
 					if len(links) > 0 {
 						uri, _ := links[0].GetAttribute("href")
 						s := strings.Split(uri, "?v=")
-						if strings.Contains(s[1], "&") {
-							s = strings.Split(s[1], "&")
-							container.Id = s[0]
+						if len(s) > 0 {
+							if strings.Contains(s[1], "&") {
+								s = strings.Split(s[1], "&")
+								container.Id = s[0]
+							} else {
+								container.Id = s[1]
+							}
 						} else {
-							container.Id = s[1]
+							container.Id = "null"
 						}
 					}
 					texts, _ := s.FindElements("yt-formatted-string")
 					if len(texts) >= 1 {
-						title, _ := texts[1].GetAttribute("title")
-						s := strings.Split(title, " • ")
+						title, _ := texts[0].GetAttribute("title")
+						artist, _ := texts[1].GetAttribute("title")
+						s := strings.Split(artist, " • ")
 						container.Artist = s[1]
-						container.Title = s[2]
+						container.Album = s[2]
+						container.Title = title
 						if len(s) >= 3 {
 							container.Duration = s[3]
 						}
 						c = append(c, container)
-						log.Println("added", title)
+						log.Println("added", artist, title)
 					}
 				}
 			}
